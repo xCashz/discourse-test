@@ -1,6 +1,6 @@
 import { test } from "qunit";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
-import compile from "handlebars-compiler";
+import Handlebars from "handlebars";
 import {
   addRawTemplate,
   removeRawTemplate,
@@ -13,7 +13,7 @@ acceptance("Raw Plugin Outlet", {
   beforeEach() {
     addRawTemplate(
       CONNECTOR,
-      compile(`<span class='topic-lala'>{{context.topic.id}}</span>`)
+      Handlebars.compile(`<span class='topic-lala'>{{context.topic.id}}</span>`)
     );
   },
 

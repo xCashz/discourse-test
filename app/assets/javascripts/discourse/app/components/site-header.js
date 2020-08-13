@@ -207,6 +207,7 @@ const SiteHeaderComponent = MountWidget.extend(Docking, PanEvents, {
 
     // Allow first notification to be dismissed on a click anywhere
     if (
+      this.currentUser &&
       !this.get("currentUser.read_first_notification") &&
       !this.get("currentUser.enforcedSecondFactor")
     ) {
@@ -214,6 +215,7 @@ const SiteHeaderComponent = MountWidget.extend(Docking, PanEvents, {
         if (
           !e.target.closest("#current-user") &&
           !e.target.closest(".ring-backdrop") &&
+          this.currentUser &&
           !this.get("currentUser.read_first_notification") &&
           !this.get("currentUser.enforcedSecondFactor")
         ) {
@@ -223,10 +225,9 @@ const SiteHeaderComponent = MountWidget.extend(Docking, PanEvents, {
           );
         }
       };
-      // TODO: re-enable event listener
-      //      document.addEventListener("click", this._dismissFirstNotification, {
-      //        once: true
-      //      });
+      document.addEventListener("click", this._dismissFirstNotification, {
+        once: true
+      });
     }
   },
 

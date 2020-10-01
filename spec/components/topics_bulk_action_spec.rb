@@ -59,14 +59,20 @@ describe TopicsBulkAction do
 
   describe "change_category" do
     fab!(:category) { Fabricate(:category) }
+    fab!(:fist_post) { Fabricate(:post, topic: topic) }
 
     context "when the user can edit the topic" do
-      it "changes the category and returns the topic_id" do
+      it "changes the category, creates a post revision and returns the topic_id" do
+        old_category_id = topic.category_id
         tba = TopicsBulkAction.new(topic.user, [topic.id], type: 'change_category', category_id: category.id)
         topic_ids = tba.perform!
         expect(topic_ids).to eq([topic.id])
         topic.reload
         expect(topic.category).to eq(category)
+
+        revision = topic.first_post.revisions.last
+        expect(revision).to be_present
+        expect(revision.modifications).to eq ({ "category_id" => [old_category_id, category.id] })
       end
     end
 

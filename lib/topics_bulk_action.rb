@@ -85,9 +85,16 @@ class TopicsBulkAction
   end
 
   def change_category
+    opts = {
+      bypass_bump: true,
+      validate_post: false,
+      bypass_rate_limiter: true
+    }
+
     topics.each do |t|
       if guardian.can_edit?(t)
-        @changed_ids << t.id if t.change_category_to_id(@operation[:category_id])
+        changes = { category_id: @operation[:category_id] }
+        @changed_ids << t.id if t.first_post.revise(@user, changes, opts)
       end
     end
   end

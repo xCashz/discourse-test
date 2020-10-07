@@ -18,6 +18,7 @@ module Jobs
       badges
       bookmarks
       category_preferences
+      queued_posts
       visits
     )
 
@@ -29,6 +30,7 @@ module Jobs
       badges: ['badge_id', 'badge_name', 'granted_at', 'post_id', 'seq', 'granted_manually', 'notification_id', 'featured_rank'],
       bookmarks: ['post_id', 'topic_id', 'post_number', 'link', 'name', 'created_at', 'updated_at', 'reminder_type', 'reminder_at', 'reminder_last_sent_at', 'reminder_set_at', 'auto_delete_preference'],
       category_preferences: ['category_id', 'category_names', 'notification_level', 'dismiss_new_timestamp'],
+      queued_posts: ['id', 'verdict', 'category_id', 'topic_id', 'post_raw', 'other_json'],
       visits: ['visited_at', 'posts_read', 'mobile', 'time_read'],
     )
 
@@ -261,6 +263,27 @@ module Jobs
           piped_category_name(cu.category_id),
           NotificationLevels.all[cu.notification_level],
           cu.last_seen_at
+        ]
+      end
+    end
+
+    def queued_posts_export
+      return enum_for(:queued_posts_export) unless block_given?
+
+      # Most Reviewable fields staff-private, but post content needs to be exported.
+      ReviewableQueuedPost
+        .where(created_by: @current_user.id)
+        .each do |rev|
+        pl = rev.payload.dup
+        post_raw = pl.delete('raw')
+
+        yield [
+          rev.id,
+          Reviewable.statuses[rev.status],
+          rev.category_id,
+          rev.topic_id,
+          post_raw,
+          MultiJson.dump(pl), # inspection seems to indicate nothing staff-private in payload, just post creation payload
         ]
       end
     end

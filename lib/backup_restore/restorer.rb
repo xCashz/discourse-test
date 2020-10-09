@@ -43,8 +43,10 @@ module BackupRestore
       validate_backup_metadata
 
       @system.enable_readonly_mode
-      @system.pause_sidekiq
+      @system.pause_sidekiq("restore")
       @system.wait_for_sidekiq
+      @system.flush_redis
+      @system.unpause_sidekiq
 
       @database_restorer.restore(db_dump_path)
 

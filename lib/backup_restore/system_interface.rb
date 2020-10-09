@@ -52,12 +52,16 @@ module BackupRestore
       end
     end
 
-    def pause_sidekiq
+    def pause_sidekiq(reason)
+      return if Sidekiq.paused?
+
       log "Pausing sidekiq..."
-      Sidekiq.pause!
+      Sidekiq.pause!(reason)
     end
 
     def unpause_sidekiq
+      return unless Sidekiq.paused?
+
       log "Unpausing sidekiq..."
       Sidekiq.unpause!
     rescue => ex
@@ -83,6 +87,13 @@ module BackupRestore
         raise RunningSidekiqJobsError.new if iterations > max_iterations
 
         log "Waiting for sidekiq to finish running jobs... ##{iterations}"
+      end
+    end
+
+    def flush_redis
+      redis = Discourse.redis
+      redis.scan_each(match: "*") do |key|
+        redis.del(key) unless key == SidekiqPauser::PAUSED_KEY
       end
     end
 

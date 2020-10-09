@@ -793,6 +793,29 @@ class Plugin::Instance
     DiscoursePluginRegistry.register_api_key_scope_mapping({ resource => action }, self)
   end
 
+  # Register a new UserApiKey scope, and its allowed routes
+  # in a query parameter rather than a header. For example:
+  #
+  # add_user_api_key_scope(:read_my_route,
+  #   methods: :get,
+  #   actions: "mycontroller#myaction",
+  #   formats: :ics,
+  #   parameters: :testparam
+  # )
+  #
+  # Multiple matchers can be attached by supplying an array of parameter hashes
+  #
+  # See UserApiKeyScope::SCOPES for more examples
+  # And lib/route_matcher.rb for the route matching logic
+  def add_user_api_key_scope(name, matcher_parameters)
+    matcher_parameters = [matcher_parameters] if !matcher_parameters.is_a?(Array)
+
+    DiscoursePluginRegistry.register_user_api_key_scope_mapping(
+      {
+        name => matcher_parameters&.map { |m| RouteMatcher.new(**m) }
+      }, self)
+  end
+
   # Register a route which can be authenticated using an api key or user api key
   # in a query parameter rather than a header. For example:
   #

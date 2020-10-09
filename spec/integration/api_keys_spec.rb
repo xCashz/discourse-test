@@ -128,4 +128,22 @@ describe 'user api keys' do
     expect(response.status).to eq(200) # Can access own calendar
   end
 
+  context "with a plugin registered user api key scope" do
+    let(:user_api_key) { Fabricate(:user_api_key) }
+
+    before do
+      plugin = Plugin::Instance.new
+      plugin.add_user_api_key_scope :my_magic_scope, methods: :get, actions: "session#current"
+      user_api_key.scopes = [UserApiKeyScope.new(name: "my_magic_scope")]
+      user_api_key.save!
+    end
+
+    it 'allows parameter access to the registered route' do
+      get '/session/current.json', headers: {
+        HTTP_USER_API_KEY: user_api_key.key
+      }
+      expect(response.status).to eq(200)
+    end
+  end
+
 end
